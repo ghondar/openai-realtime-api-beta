@@ -1,7 +1,7 @@
 /**
  * EventHandler callback
  */
-type EventHandlerCallbackType = (event: { [key: string]: unknown }) => void
+type EventHandlerCallbackType<T = { [key: string]: unknown }> = (event: T) => void
 
 const sleep = (t: number): Promise<void> => new Promise((r) => setTimeout(() => r(), t))
 
@@ -35,9 +35,9 @@ export class RealtimeEventHandler {
    * @param {EventHandlerCallbackType} callback Code to execute on event
    * @returns {EventHandlerCallbackType}
    */
-  on(eventName: string, callback: EventHandlerCallbackType): EventHandlerCallbackType {
+  on<T>(eventName: string, callback: EventHandlerCallbackType<T>): EventHandlerCallbackType<T> {
     this.eventHandlers[eventName] = this.eventHandlers[eventName] || []
-    this.eventHandlers[eventName].push(callback)
+    this.eventHandlers[eventName].push(callback as EventHandlerCallbackType)
     return callback
   }
 
