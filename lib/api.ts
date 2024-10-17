@@ -123,7 +123,7 @@ export class RealtimeAPI extends RealtimeEventHandler {
        * Node.js
        */
       const moduleName = 'ws'
-      const wsModule = await import(/* webpackIgnore: true */ moduleName)
+      const wsModule = await import(/* @vite-ignore */ /* webpackIgnore: true */ moduleName)
       const WebSocket = wsModule.default
       const ws = new WebSocket(this.url, [], {
         finishRequest: (request) => {
