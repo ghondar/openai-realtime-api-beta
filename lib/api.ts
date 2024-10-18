@@ -58,7 +58,7 @@ export class RealtimeAPI extends RealtimeEventHandler {
         return arg
     })
     if(this.debug)
-      console.log(...logs)
+      console.info(...logs)
 
     return true
   }
