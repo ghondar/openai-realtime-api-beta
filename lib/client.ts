@@ -1,5 +1,5 @@
 import { RealtimeAPI } from './api'
-import { Event, RealtimeConversation } from './conversation'
+import { RealtimeConversation } from './conversation'
 import { RealtimeEventHandler } from './event_handler'
 import { RealtimeUtils } from './utils'
 
