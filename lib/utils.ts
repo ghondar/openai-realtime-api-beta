@@ -19,6 +19,7 @@ export class RealtimeUtils {
       const s = Math.max(-1, Math.min(1, float32Array[i]))
       view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true)
     }
+
     return buffer
   }
 
@@ -31,9 +32,9 @@ export class RealtimeUtils {
     const binaryString = atob(base64)
     const len = binaryString.length
     const bytes = new Uint8Array(len)
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i < len; i++)
       bytes[i] = binaryString.charCodeAt(i)
-    }
+
     return bytes.buffer
   }
 
@@ -43,11 +44,11 @@ export class RealtimeUtils {
    * @returns {string}
    */
   static arrayBufferToBase64(arrayBuffer: ArrayBuffer | Int16Array | Float32Array): string {
-    if (arrayBuffer instanceof Float32Array) {
+    if(arrayBuffer instanceof Float32Array)
       arrayBuffer = this.floatTo16BitPCM(arrayBuffer)
-    } else if (arrayBuffer instanceof Int16Array) {
+    else if(arrayBuffer instanceof Int16Array)
       arrayBuffer = arrayBuffer.buffer
-    }
+
     let binary = ''
     const bytes = new Uint8Array(arrayBuffer)
     const chunkSize = 0x8000 // 32KB chunk size
@@ -55,6 +56,7 @@ export class RealtimeUtils {
       const chunk = bytes.subarray(i, i + chunkSize)
       binary += String.fromCharCode.apply(null, chunk)
     }
+
     return btoa(binary)
   }
 
@@ -65,22 +67,22 @@ export class RealtimeUtils {
    * @returns {Int16Array}
    */
   static mergeInt16Arrays(left: ArrayBuffer | Int16Array, right: ArrayBuffer | Int16Array): Int16Array {
-    if (left instanceof ArrayBuffer) {
+    if(left instanceof ArrayBuffer)
       left = new Int16Array(left)
-    }
-    if (right instanceof ArrayBuffer) {
+
+    if(right instanceof ArrayBuffer)
       right = new Int16Array(right)
-    }
-    if (!(left instanceof Int16Array) || !(right instanceof Int16Array)) {
-      throw new Error(`Both items must be Int16Array`)
-    }
+
+    if(!(left instanceof Int16Array) || !(right instanceof Int16Array))
+      throw new Error('Both items must be Int16Array')
+
     const newValues = new Int16Array(left.length + right.length)
-    for (let i = 0; i < left.length; i++) {
+    for (let i = 0; i < left.length; i++)
       newValues[i] = left[i]
-    }
-    for (let j = 0; j < right.length; j++) {
+
+    for (let j = 0; j < right.length; j++)
       newValues[left.length + j] = right[j]
-    }
+
     return newValues
   }
 
@@ -97,6 +99,7 @@ export class RealtimeUtils {
       .fill(0)
       .map(() => chars[Math.floor(Math.random() * chars.length)])
       .join('')
+
     return `${prefix}${str}`
   }
 }

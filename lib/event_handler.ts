@@ -26,6 +26,7 @@ export class RealtimeEventHandler {
   clearEventHandlers(): true {
     this.eventHandlers = {}
     this.nextEventHandlers = {}
+
     return true
   }
 
@@ -38,6 +39,7 @@ export class RealtimeEventHandler {
   on<T>(eventName: string, callback: EventHandlerCallbackType<T>): EventHandlerCallbackType<T> {
     this.eventHandlers[eventName] = this.eventHandlers[eventName] || []
     this.eventHandlers[eventName].push(callback as EventHandlerCallbackType)
+
     return callback
   }
 
@@ -50,6 +52,7 @@ export class RealtimeEventHandler {
   onNext(eventName: string, callback: EventHandlerCallbackType): EventHandlerCallbackType {
     this.nextEventHandlers[eventName] = this.nextEventHandlers[eventName] || []
     this.nextEventHandlers[eventName].push(callback)
+
     return callback
   }
 
@@ -62,15 +65,16 @@ export class RealtimeEventHandler {
    */
   off(eventName: string, callback?: EventHandlerCallbackType): true {
     const handlers = this.eventHandlers[eventName] || []
-    if (callback) {
+    if(callback) {
       const index = handlers.indexOf(callback)
-      if (index === -1) {
+      if(index === -1)
         throw new Error(`Could not turn off specified event listener for "${eventName}": not found as a listener`)
-      }
+
       handlers.splice(index, 1)
     } else {
       delete this.eventHandlers[eventName]
     }
+
     return true
   }
 
@@ -83,15 +87,16 @@ export class RealtimeEventHandler {
    */
   offNext(eventName: string, callback?: EventHandlerCallbackType): true {
     const nextHandlers = this.nextEventHandlers[eventName] || []
-    if (callback) {
+    if(callback) {
       const index = nextHandlers.indexOf(callback)
-      if (index === -1) {
+      if(index === -1)
         throw new Error(`Could not turn off specified next event listener for "${eventName}": not found as a listener`)
-      }
+
       nextHandlers.splice(index, 1)
     } else {
       delete this.nextEventHandlers[eventName]
     }
+
     return true
   }
 
@@ -106,14 +111,14 @@ export class RealtimeEventHandler {
     let nextEvent: T | undefined
     this.onNext(eventName, (event) => (nextEvent = event as T))
     while (!nextEvent) {
-      if (timeout) {
+      if(timeout) {
         const t1 = Date.now()
-        if (t1 - t0 > timeout) {
+        if(t1 - t0 > timeout)
           return null
-        }
       }
       await sleep(1)
     }
+
     return nextEvent
   }
 
@@ -125,14 +130,15 @@ export class RealtimeEventHandler {
    */
   dispatch(eventName: string, event?: unknown): true {
     const handlers = [].concat(this.eventHandlers[eventName] || [])
-    for (const handler of handlers) {
+    for (const handler of handlers)
       handler(event)
-    }
+
     const nextHandlers = [].concat(this.nextEventHandlers[eventName] || [])
-    for (const nextHandler of nextHandlers) {
+    for (const nextHandler of nextHandlers)
       nextHandler(event)
-    }
+
     delete this.nextEventHandlers[eventName]
+
     return true
   }
 }
