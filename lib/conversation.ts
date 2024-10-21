@@ -11,34 +11,34 @@ import { RealtimeUtils } from './utils'
  * @property {string} [transcript]
  */
 interface ItemContentDeltaType {
-  text?: string;
-  audio?: Int16Array;
-  arguments?: string;
-  transcript?: string;
+  text?: string
+  audio?: Int16Array
+  arguments?: string
+  transcript?: string
 }
 
 interface ResponseType {
-  id: string;
-  output: string[];
+  id: string
+  output: string[]
 }
 
 export interface Event {
-  event_id: string;
-  type: string;
-  item?: ItemType;
-  item_id?: string;
-  content_index?: number;
-  transcript?: string;
-  response?: ResponseType;
-  response_id?: string;
-  part?: InputAudioContentType;
-  delta?: string;
-  audio_start_ms?: number;
-  audio_end_ms?: number;
+  event_id: string
+  type: string
+  item?: ItemType
+  item_id?: string
+  content_index?: number
+  transcript?: string
+  response?: ResponseType
+  response_id?: string
+  part?: InputAudioContentType
+  delta?: string
+  audio_start_ms?: number
+  audio_end_ms?: number
 }
 
 interface EventProcessors {
-  [key: string]: (event: Event, ...args: unknown[]) => { item: ItemType | null; delta: ItemContentDeltaType | null };
+  [key: string]: (event: Event, ...args: unknown[]) => { item: ItemType | null; delta: ItemContentDeltaType | null }
 }
 
 /**
@@ -54,15 +54,15 @@ export class RealtimeConversation {
   responses: ResponseType[] = []
   queuedSpeechItems: {
     [key: string]: {
-      audio?: Int16Array;
-      audio_start_ms?: number;
-      audio_end_ms?: number;
-    };
+      audio?: Int16Array
+      audio_start_ms?: number
+      audio_end_ms?: number
+    }
   } = {}
   queuedTranscriptItems: {
     [key: string]: {
-      transcript: string;
-    };
+      transcript: string
+    }
   } = {}
   queuedInputAudio: Int16Array | null = null
 
@@ -71,7 +71,7 @@ export class RealtimeConversation {
       const { item } = event
       // deep copy values
       const newItem = JSON.parse(JSON.stringify(item))
-      if(!this.itemLookup[newItem.id]) {
+      if (!this.itemLookup[newItem.id]) {
         this.itemLookup[newItem.id] = newItem
         this.items.push(newItem)
       }
@@ -79,41 +79,40 @@ export class RealtimeConversation {
       newItem.formatted.audio = new Int16Array(0)
       newItem.formatted.text = ''
       newItem.formatted.transcript = ''
-      if(this.queuedSpeechItems[newItem.id]) {
+      if (this.queuedSpeechItems[newItem.id]) {
         // If we have a speech item, can populate audio
         newItem.formatted.audio = this.queuedSpeechItems[newItem.id].audio
         delete this.queuedSpeechItems[newItem.id] // free up some memory
       }
-      if(newItem.content) {
+      if (newItem.content) {
         // Populate formatted text if it comes out on creation
-        const textContent = newItem.content.filter((c) => [ 'text', 'input_text' ].includes(c.type))
-        for (const content of textContent)
-          newItem.formatted.text += content.text
+        const textContent = newItem.content.filter((c) => ['text', 'input_text'].includes(c.type))
+        for (const content of textContent) newItem.formatted.text += content.text
       }
-      if(this.queuedTranscriptItems[newItem.id]) {
+      if (this.queuedTranscriptItems[newItem.id]) {
         // If we have a transcript item, can pre-populate transcript
         newItem.formatted.transcript = this.queuedTranscriptItems.transcript
         delete this.queuedTranscriptItems[newItem.id]
       }
-      if(newItem.type === 'message') {
-        if(newItem.role === 'user') {
+      if (newItem.type === 'message') {
+        if (newItem.role === 'user') {
           newItem.status = 'completed'
-          if(this.queuedInputAudio) {
+          if (this.queuedInputAudio) {
             newItem.formatted.audio = this.queuedInputAudio
             this.queuedInputAudio = null
           }
         } else {
           newItem.status = 'in_progress'
         }
-      } else if(newItem.type === 'function_call') {
+      } else if (newItem.type === 'function_call') {
         newItem.formatted.tool = {
           arguments: '',
-          call_id  : newItem.call_id,
-          name     : newItem.name,
-          type     : 'function'
+          call_id: newItem.call_id,
+          name: newItem.name,
+          type: 'function'
         }
         newItem.status = 'in_progress'
-      } else if(newItem.type === 'function_call_output') {
+      } else if (newItem.type === 'function_call_output') {
         newItem.status = 'completed'
         newItem.formatted.output = newItem.output
       }
@@ -123,13 +122,11 @@ export class RealtimeConversation {
     'conversation.item.deleted': (event: Event) => {
       const { item_id } = event
       const item = this.itemLookup[item_id]
-      if(!item)
-        throw new Error(`item.deleted: Item "${item_id}" not found`)
+      if (!item) throw new Error(`item.deleted: Item "${item_id}" not found`)
 
       delete this.itemLookup[item.id]
       const index = this.items.indexOf(item)
-      if(index > -1)
-        this.items.splice(index, 1)
+      if (index > -1) this.items.splice(index, 1)
 
       return { delta: null, item }
     },
@@ -139,7 +136,7 @@ export class RealtimeConversation {
       // We use a single space to represent an empty transcript for .formatted values
       // Otherwise it looks like no transcript provided
       const formattedTranscript = transcript || ' '
-      if(!item) {
+      if (!item) {
         // We can receive transcripts in VAD mode before item.created
         // This happens specifically when audio is empty
         this.queuedTranscriptItems[item_id] = {
@@ -157,8 +154,7 @@ export class RealtimeConversation {
     'conversation.item.truncated': (event: Event) => {
       const { item_id, audio_end_ms } = event
       const item = this.itemLookup[item_id]
-      if(!item)
-        throw new Error(`item.truncated: Item "${item_id}" not found`)
+      if (!item) throw new Error(`item.truncated: Item "${item_id}" not found`)
 
       const endIndex = Math.floor((audio_end_ms * this.defaultFrequency) / 1000)
       item.formatted.transcript = ''
@@ -174,12 +170,11 @@ export class RealtimeConversation {
     },
     'input_audio_buffer.speech_stopped': (event: Event, inputAudioBuffer: Int16Array) => {
       const { item_id, audio_end_ms } = event
-      if(!this.queuedSpeechItems[item_id])
-        this.queuedSpeechItems[item_id] = { audio_start_ms: audio_end_ms }
+      if (!this.queuedSpeechItems[item_id]) this.queuedSpeechItems[item_id] = { audio_start_ms: audio_end_ms }
 
       const speech = this.queuedSpeechItems[item_id]
       speech.audio_end_ms = audio_end_ms
-      if(inputAudioBuffer) {
+      if (inputAudioBuffer) {
         const startIndex = Math.floor((speech.audio_start_ms * this.defaultFrequency) / 1000)
         const endIndex = Math.floor((speech.audio_end_ms * this.defaultFrequency) / 1000)
         speech.audio = inputAudioBuffer.slice(startIndex, endIndex)
@@ -190,8 +185,7 @@ export class RealtimeConversation {
     'response.audio.delta': (event: Event) => {
       const { item_id, /*  content_index, */ delta } = event
       const item = this.itemLookup[item_id]
-      if(!item)
-        throw new Error(`response.audio.delta: Item "${item_id}" not found`)
+      if (!item) throw new Error(`response.audio.delta: Item "${item_id}" not found`)
 
       // This never gets renderered, we care about the file data instead
       // item.content[content_index].audio += delta;
@@ -204,8 +198,7 @@ export class RealtimeConversation {
     'response.audio_transcript.delta': (event: Event) => {
       const { item_id, content_index, delta } = event
       const item = this.itemLookup[item_id]
-      if(!item)
-        throw new Error(`response.audio_transcript.delta: Item "${item_id}" not found`)
+      if (!item) throw new Error(`response.audio_transcript.delta: Item "${item_id}" not found`)
 
       item['content'][content_index].transcript += delta
       item.formatted.transcript += delta
@@ -215,8 +208,7 @@ export class RealtimeConversation {
     'response.content_part.added': (event: Event) => {
       const { item_id, part } = event
       const item = this.itemLookup[item_id]
-      if(!item)
-        throw new Error(`response.content_part.added: Item "${item_id}" not found`)
+      if (!item) throw new Error(`response.content_part.added: Item "${item_id}" not found`)
 
       item['content'].push(part)
 
@@ -224,7 +216,7 @@ export class RealtimeConversation {
     },
     'response.created': (event: Event) => {
       const { response } = event
-      if(!this.responseLookup[response.id]) {
+      if (!this.responseLookup[response.id]) {
         this.responseLookup[response.id] = response
         this.responses.push(response)
       }
@@ -234,8 +226,7 @@ export class RealtimeConversation {
     'response.function_call_arguments.delta': (event: Event) => {
       const { item_id, delta } = event
       const item = this.itemLookup[item_id]
-      if(!item)
-        throw new Error(`response.function_call_arguments.delta: Item "${item_id}" not found`)
+      if (!item) throw new Error(`response.function_call_arguments.delta: Item "${item_id}" not found`)
 
       item['arguments'] += delta
       item.formatted.tool.arguments += delta
@@ -245,8 +236,7 @@ export class RealtimeConversation {
     'response.output_item.added': (event: Event) => {
       const { response_id, item } = event
       const response = this.responseLookup[response_id]
-      if(!response)
-        throw new Error(`response.output_item.added: Response "${response_id}" not found`)
+      if (!response) throw new Error(`response.output_item.added: Response "${response_id}" not found`)
 
       response.output.push(item.id)
 
@@ -254,12 +244,10 @@ export class RealtimeConversation {
     },
     'response.output_item.done': (event: Event) => {
       const { item } = event
-      if(!item)
-        throw new Error('response.output_item.done: Missing "item"')
+      if (!item) throw new Error('response.output_item.done: Missing "item"')
 
       const foundItem = this.itemLookup[item.id]
-      if(!foundItem)
-        throw new Error(`response.output_item.done: Item "${item.id}" not found`)
+      if (!foundItem) throw new Error(`response.output_item.done: Item "${item.id}" not found`)
 
       foundItem['status'] = item['status']
 
@@ -268,8 +256,7 @@ export class RealtimeConversation {
     'response.text.delta': (event: Event) => {
       const { item_id, content_index, delta } = event
       const item = this.itemLookup[item_id]
-      if(!item)
-        throw new Error(`response.text.delta: Item "${item_id}" not found`)
+      if (!item) throw new Error(`response.text.delta: Item "${item_id}" not found`)
 
       item['content'][content_index].text += delta
       item.formatted.text += delta
@@ -320,17 +307,16 @@ export class RealtimeConversation {
    * @returns {item: import('./client.js').ItemType | null, delta: ItemContentDeltaType | null}
    */
   processEvent(event: Event, ...args: unknown[]): { item: ItemType | null; delta: ItemContentDeltaType | null } {
-    if(!event.event_id) {
+    if (!event.event_id) {
       console.error(event)
       throw new Error('Missing "event_id" on event')
     }
-    if(!event.type) {
+    if (!event.type) {
       console.error(event)
       throw new Error('Missing "type" on event')
     }
     const eventProcessor = this.EventProcessors[event.type]
-    if(!eventProcessor)
-      throw new Error(`Missing conversation event processor for "${event.type}"`)
+    if (!eventProcessor) throw new Error(`Missing conversation event processor for "${event.type}"`)
 
     return eventProcessor.call(this, event, ...args)
   }

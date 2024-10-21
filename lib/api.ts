@@ -2,14 +2,14 @@ import { RealtimeEventHandler } from './event_handler'
 import { RealtimeUtils } from './utils'
 
 interface RealtimeAPISettings {
-  url?: string;
-  apiKey?: string;
-  dangerouslyAllowAPIKeyInBrowser?: boolean;
-  debug?: boolean;
+  url?: string
+  apiKey?: string
+  dangerouslyAllowAPIKeyInBrowser?: boolean
+  debug?: boolean
 }
 
 interface ConnectSettings {
-  model?: string;
+  model?: string
 }
 
 export class RealtimeAPI extends RealtimeEventHandler {
@@ -31,8 +31,8 @@ export class RealtimeAPI extends RealtimeEventHandler {
     this.apiKey = apiKey || null
     this.debug = !!debug
     this.ws = null
-    if(globalThis.document && this.apiKey)
-      if(!dangerouslyAllowAPIKeyInBrowser)
+    if (globalThis.document && this.apiKey)
+      if (!dangerouslyAllowAPIKeyInBrowser)
         throw new Error('Can not provide API key in the browser without "dangerouslyAllowAPIKeyInBrowser" set to true')
   }
 
@@ -51,14 +51,11 @@ export class RealtimeAPI extends RealtimeEventHandler {
    */
   log(...args: unknown[]): boolean {
     const date = new Date().toISOString()
-    const logs = [ `[Websocket/${date}]` ].concat(args.toString()).map((arg) => {
-      if(typeof arg === 'object' && arg !== null)
-        return JSON.stringify(arg, null, 2)
-      else
-        return arg
+    const logs = [`[Websocket/${date}]`].concat(args.toString()).map((arg) => {
+      if (typeof arg === 'object' && arg !== null) return JSON.stringify(arg, null, 2)
+      else return arg
     })
-    if(this.debug)
-      console.info(...logs)
+    if (this.debug) console.info(...logs)
 
     return true
   }
@@ -69,18 +66,15 @@ export class RealtimeAPI extends RealtimeEventHandler {
    * @returns {Promise<true>}
    */
   async connect({ model }: ConnectSettings = { model: 'gpt-4o-realtime-preview-2024-10-01' }): Promise<true> {
-    if(!this.apiKey && this.url === this.defaultUrl)
-      console.warn(`No apiKey provided for connection to "${this.url}"`)
+    if (!this.apiKey && this.url === this.defaultUrl) console.warn(`No apiKey provided for connection to "${this.url}"`)
 
-    if(this.isConnected())
-      throw new Error('Already connected')
+    if (this.isConnected()) throw new Error('Already connected')
 
-    if(globalThis.document) {
+    if (globalThis.document) {
       /**
        * Web browser
        */
-      if(this.apiKey)
-        console.warn('Warning: Connecting using API key in the browser, this is not recommended')
+      if (this.apiKey) console.warn('Warning: Connecting using API key in the browser, this is not recommended')
 
       const WebSocket = globalThis.WebSocket
       const ws = new WebSocket(`${this.url}${model ? `?model=${model}` : ''}`, [
@@ -169,7 +163,7 @@ export class RealtimeAPI extends RealtimeEventHandler {
    * @returns {true}
    */
   disconnect(ws?: WebSocket): true {
-    if(!ws || this.ws === ws) {
+    if (!ws || this.ws === ws) {
       this.ws && this.ws.close()
       this.ws = null
 
@@ -198,16 +192,14 @@ export class RealtimeAPI extends RealtimeEventHandler {
    * @returns {true}
    */
   send(eventName: string, data?: { [key: string]: unknown }): true {
-    if(!this.isConnected())
-      throw new Error('RealtimeAPI is not connected')
+    if (!this.isConnected()) throw new Error('RealtimeAPI is not connected')
 
     data = data || {}
-    if(typeof data !== 'object')
-      throw new Error('data must be an object')
+    if (typeof data !== 'object') throw new Error('data must be an object')
 
     const event = {
       event_id: RealtimeUtils.generateId('evt_'),
-      type    : eventName,
+      type: eventName,
       ...data
     }
     this.dispatch(`client.${eventName}`, event)

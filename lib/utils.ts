@@ -32,8 +32,7 @@ export class RealtimeUtils {
     const binaryString = atob(base64)
     const len = binaryString.length
     const bytes = new Uint8Array(len)
-    for (let i = 0; i < len; i++)
-      bytes[i] = binaryString.charCodeAt(i)
+    for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i)
 
     return bytes.buffer
   }
@@ -44,10 +43,8 @@ export class RealtimeUtils {
    * @returns {string}
    */
   static arrayBufferToBase64(arrayBuffer: ArrayBuffer | Int16Array | Float32Array): string {
-    if(arrayBuffer instanceof Float32Array)
-      arrayBuffer = this.floatTo16BitPCM(arrayBuffer)
-    else if(arrayBuffer instanceof Int16Array)
-      arrayBuffer = arrayBuffer.buffer
+    if (arrayBuffer instanceof Float32Array) arrayBuffer = this.floatTo16BitPCM(arrayBuffer)
+    else if (arrayBuffer instanceof Int16Array) arrayBuffer = arrayBuffer.buffer
 
     let binary = ''
     const bytes = new Uint8Array(arrayBuffer)
@@ -67,21 +64,16 @@ export class RealtimeUtils {
    * @returns {Int16Array}
    */
   static mergeInt16Arrays(left: ArrayBuffer | Int16Array, right: ArrayBuffer | Int16Array): Int16Array {
-    if(left instanceof ArrayBuffer)
-      left = new Int16Array(left)
+    if (left instanceof ArrayBuffer) left = new Int16Array(left)
 
-    if(right instanceof ArrayBuffer)
-      right = new Int16Array(right)
+    if (right instanceof ArrayBuffer) right = new Int16Array(right)
 
-    if(!(left instanceof Int16Array) || !(right instanceof Int16Array))
-      throw new Error('Both items must be Int16Array')
+    if (!(left instanceof Int16Array) || !(right instanceof Int16Array)) throw new Error('Both items must be Int16Array')
 
     const newValues = new Int16Array(left.length + right.length)
-    for (let i = 0; i < left.length; i++)
-      newValues[i] = left[i]
+    for (let i = 0; i < left.length; i++) newValues[i] = left[i]
 
-    for (let j = 0; j < right.length; j++)
-      newValues[left.length + j] = right[j]
+    for (let j = 0; j < right.length; j++) newValues[left.length + j] = right[j]
 
     return newValues
   }
